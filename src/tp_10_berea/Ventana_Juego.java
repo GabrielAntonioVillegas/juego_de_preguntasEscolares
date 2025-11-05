@@ -17,7 +17,8 @@ public class Ventana_Juego extends javax.swing.JFrame {
     private String respuestaCorrecta = "";//para guardar la pregunta correcta;
     private Juego juego; //para instanciar la clase juego
     private int contador = 0; //para el temporizador
-    private int contadorPreguntas = 1; //para el contador de preguntas
+    private int contadorPreguntas = 0; //para el contador de preguntas
+    private String respuestaSeleccionada = "";
     
     private Color colorRojo;
     private Color colorAzul;
@@ -36,6 +37,33 @@ public class Ventana_Juego extends javax.swing.JFrame {
         juego = new Juego();
         realizarPregunta(juego,_usuario);
             
+    }
+    public void validarRespuesta(int suceso){
+        //SUCESO EN 0 SIGNIFICA QUE EL JUGADOR SE QUEDO SIN TIEMPO Y NO CONTESTO O RESPONDIÓ MAL
+        if(suceso==0){
+            int aux = Integer.parseInt(datosPartida.get("puntaje"));
+            aux--;
+            String p = ""+aux;
+            datosPartida.put("puntaje", p);
+            
+            int aux2 = Integer.parseInt(datosPartida.get("incorrectas"));
+            aux2--;
+            String p2 = ""+aux2;
+            datosPartida.put("puntaje", p2);
+        }
+        //SUCESO EN 1 SIGNIFICA QUE EL JUGADOR RESPONDIO BIEN
+        else if(suceso==1){
+            int aux = Integer.parseInt(datosPartida.get("puntaje"));
+            aux++;
+            String p = ""+aux;
+            datosPartida.put("puntaje", p);
+            
+            int aux2 = Integer.parseInt(datosPartida.get("correctas"));
+            aux2++;
+            String p2 = ""+aux2;
+            datosPartida.put("puntaje", p2);
+        
+        }
     }
     
     public void iniciarPartida(String _usuario){
@@ -57,9 +85,12 @@ public class Ventana_Juego extends javax.swing.JFrame {
         Timer timer = new Timer(1000, e -> {
             contador++;
             label_temporizador.setText(""+contador);
-            if (contador == 5) {
+            if (contador == 30) {
                 ((Timer)e.getSource()).stop();
                 usoPaneles(4);
+                if(respuestaSeleccionada.equals("")){
+                    validarRespuesta(0);
+                }
                
             }
         });
@@ -117,6 +148,7 @@ public class Ventana_Juego extends javax.swing.JFrame {
             label_contenedor_temporizador.setVisible(true);
             label_temporizador.setVisible(true);
             label_temporizador.setText("0");
+            label_contador_preguntas.setText("PREGUNTA: "+contadorPreguntas+"/20");
         }      
         //MOSTRAR PANEL RESPUESTA 
         else if(seleccion == 4){
@@ -124,18 +156,20 @@ public class Ventana_Juego extends javax.swing.JFrame {
             label_contenedor_temporizador.setVisible(false);
             label_temporizador.setVisible(false);
             bontonSiguiente.setVisible(true);
-            
+            contador=0;
             ArrayList<JButton> botones = new ArrayList<JButton>();
             botones.add(jButton1);
             botones.add(jButton2);
             botones.add(jButton3);
             botones.add(jButton4);
-            String auxiliar = "<html><p style=\"width:250px; text-align: center;\">" + respuestaCorrecta.trim() + "</p></html>";
+            
             for (int i = 0; i < botones.size(); i++) {
-                if(!botones.get(i).getText().trim().equalsIgnoreCase(auxiliar)){
+                String textoBoton = botones.get(i).getText().replaceAll("<[^>]*>", "").trim();
+
+                if (!textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
                     botones.get(i).setBackground(Color.gray);
-                    
                 }
+                
             }
         }
         
@@ -151,6 +185,7 @@ public class Ventana_Juego extends javax.swing.JFrame {
         jProgressBar1 = new javax.swing.JProgressBar();
         label_cargando = new javax.swing.JLabel();
         panel_partida = new javax.swing.JPanel();
+        label_contador_preguntas = new javax.swing.JLabel();
         label_temporizador = new javax.swing.JLabel();
         label_jugador = new javax.swing.JLabel();
         label_contenedor_temporizador = new javax.swing.JLabel();
@@ -199,6 +234,11 @@ public class Ventana_Juego extends javax.swing.JFrame {
 
         panel_partida.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        label_contador_preguntas.setFont(new java.awt.Font("Roboto Medium", 1, 18)); // NOI18N
+        label_contador_preguntas.setForeground(new java.awt.Color(254, 254, 254));
+        label_contador_preguntas.setText("PREGUNTA: ");
+        panel_partida.add(label_contador_preguntas, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 90, 360, 30));
+
         label_temporizador.setFont(new java.awt.Font("Roboto Black", 0, 24)); // NOI18N
         label_temporizador.setForeground(new java.awt.Color(255, 255, 255));
         label_temporizador.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -218,7 +258,7 @@ public class Ventana_Juego extends javax.swing.JFrame {
         label_puntos.setFont(new java.awt.Font("Roboto Black", 1, 18)); // NOI18N
         label_puntos.setForeground(new java.awt.Color(255, 255, 255));
         label_puntos.setText("PUNTOS: ");
-        panel_partida.add(label_puntos, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 50, 180, -1));
+        panel_partida.add(label_puntos, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 50, 360, 30));
 
         jButton4.setBackground(new java.awt.Color(38, 137, 12));
         jButton4.setFont(new java.awt.Font("Roboto", 1, 14)); // NOI18N
@@ -226,6 +266,11 @@ public class Ventana_Juego extends javax.swing.JFrame {
         jButton4.setText("PREGUNTA 4");
         jButton4.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jButton4.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
         panel_partida.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 390, 350, 70));
 
         jButton3.setBackground(new java.awt.Color(216, 158, 0));
@@ -234,6 +279,11 @@ public class Ventana_Juego extends javax.swing.JFrame {
         jButton3.setText("PREGUNTA 3");
         jButton3.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jButton3.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
         panel_partida.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 390, 350, 70));
 
         jButton2.setBackground(new java.awt.Color(19, 104, 206));
@@ -327,11 +377,24 @@ public class Ventana_Juego extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        String textoBoton = jButton1.getText().replaceAll("<[^>]*>", "").trim();
+        if (textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
+            validarRespuesta(1);
+        }else{
+            validarRespuesta(0);
+        }
+        usoPaneles(4);
+        
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
+        String textoBoton = jButton2.getText().replaceAll("<[^>]*>", "").trim();
+        if (textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
+            validarRespuesta(1);
+        }else{
+            validarRespuesta(0);
+        }
+        usoPaneles(4);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void bontonSiguienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bontonSiguienteActionPerformed
@@ -342,6 +405,26 @@ public class Ventana_Juego extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_bontonSiguienteActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        String textoBoton = jButton3.getText().replaceAll("<[^>]*>", "").trim();
+        if (textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
+            validarRespuesta(1);
+        }else{
+            validarRespuesta(0);
+        }
+        usoPaneles(4);
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        String textoBoton = jButton4.getText().replaceAll("<[^>]*>", "").trim();
+        if (textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
+            validarRespuesta(1);
+        }else{
+            validarRespuesta(0);
+        }
+        usoPaneles(4);
+    }//GEN-LAST:event_jButton4ActionPerformed
 
   
     public static void main(String args[]) {
@@ -384,6 +467,7 @@ public class Ventana_Juego extends javax.swing.JFrame {
     private javax.swing.JButton jButton4;
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JLabel label_cargando;
+    private javax.swing.JLabel label_contador_preguntas;
     private javax.swing.JLabel label_contenedor_temporizador;
     private javax.swing.JLabel label_fondo;
     private javax.swing.JLabel label_jugador;
