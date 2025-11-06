@@ -1,6 +1,3 @@
-//String textoOriginal = "Según los diferentes algoritmos mencionados, luego de varias ejecuciones, ¿cual tiene una mayor probabilidad de repetirse el resultado?";
-//String textoConFormato = "<html><p style=\"width:500px; text-align: center;\">" + textoOriginal + "</p></html>";
-//jLabel2.setText(textoConFormato);
 package tp_10_berea;
 
 import java.awt.Color;
@@ -13,12 +10,13 @@ import javax.swing.Timer;
 public class Ventana_Juego extends javax.swing.JFrame {
     
     private TreeMap<String, String> datosPartida; //Para guardar los datos de la partida
-    private String usuario; //para guardar el nombre de usuario 
-    private String respuestaCorrecta = "";//para guardar la pregunta correcta;
-    private Juego juego; //para instanciar la clase juego
-    private int contador = 0; //para el temporizador
-    private int contadorPreguntas = 0; //para el contador de preguntas
+    private String usuario;                       //para guardar el nombre de usuario 
+    private Juego juego;                          //para instanciar la clase juego    
+    
     private String respuestaSeleccionada = "";
+    private String respuestaCorrecta = "";        //para guardar la pregunta correcta;
+    private int contadorPreguntas = 0;            //para el contador de preguntas
+    private int contador = 0;                     //para el temporizador
     
     private Color colorRojo;
     private Color colorAzul;
@@ -34,41 +32,6 @@ public class Ventana_Juego extends javax.swing.JFrame {
         colorAmarillo = jButton3.getBackground();
         colorVerde = jButton4.getBackground();
         
-        juego = new Juego();
-        realizarPregunta(juego,_usuario);
-            
-    }
-    public void validarRespuesta(int suceso){
-        //SUCESO EN 0 SIGNIFICA QUE EL JUGADOR SE QUEDO SIN TIEMPO Y NO CONTESTO O RESPONDIÓ MAL
-        if(suceso==0){
-            int aux = Integer.parseInt(datosPartida.get("puntaje"));
-            aux--;
-            String p = ""+aux;
-            datosPartida.put("puntaje", p);
-            
-            int aux2 = Integer.parseInt(datosPartida.get("incorrectas"));
-            aux2--;
-            String p2 = ""+aux2;
-            datosPartida.put("puntaje", p2);
-        }
-        //SUCESO EN 1 SIGNIFICA QUE EL JUGADOR RESPONDIO BIEN
-        else if(suceso==1){
-            int aux = Integer.parseInt(datosPartida.get("puntaje"));
-            aux++;
-            String p = ""+aux;
-            datosPartida.put("puntaje", p);
-            
-            int aux2 = Integer.parseInt(datosPartida.get("correctas"));
-            aux2++;
-            String p2 = ""+aux2;
-            datosPartida.put("puntaje", p2);
-        
-        }
-    }
-    
-    public void iniciarPartida(String _usuario){
-        
-        usoPaneles(3);
         datosPartida = new TreeMap<>();
         datosPartida.put("puntaje","0");
         datosPartida.put("correctas","0");
@@ -77,21 +40,21 @@ public class Ventana_Juego extends javax.swing.JFrame {
             
         label_jugador.setText("JUGADOR: "+ datosPartida.get("usuario"));
         label_puntos.setText("PUNTOS: "+ datosPartida.get("puntaje"));
-        
-        temporizador();
+  
+            
+        juego = new Juego();
+        realizarPregunta(juego,_usuario);
     }
+    
     
     public void temporizador(){
         Timer timer = new Timer(1000, e -> {
             contador++;
             label_temporizador.setText(""+contador);
-            if (contador == 30) {
+            if (contador == 5) {
                 ((Timer)e.getSource()).stop();
                 usoPaneles(4);
-                if(respuestaSeleccionada.equals("")){
-                    validarRespuesta(0);
-                }
-               
+                       
             }
         });
 
@@ -99,13 +62,15 @@ public class Ventana_Juego extends javax.swing.JFrame {
     }
     
     public void realizarPregunta(Juego juego,String _usuario){
-        usoPaneles(1);
+        if(contadorPreguntas == 0){
+            usoPaneles(1);
+        }
+        
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
 
             @Override
             protected Void doInBackground() throws Exception {
-                respuestaCorrecta = juego.llamarPreguntas(label_pregunta,jButton1,jButton2,jButton3,jButton4);
-                System.out.println(respuestaCorrecta);
+                juego.hacerPregunta(label_pregunta,jButton1,jButton2,jButton3,jButton4);
                 contadorPreguntas++;
                 return null;
             }
@@ -113,7 +78,8 @@ public class Ventana_Juego extends javax.swing.JFrame {
             @Override
             protected void done() {
                 usoPaneles(2);
-                iniciarPartida(_usuario);
+                usoPaneles(3);
+                temporizador();
             }
         };
 
@@ -157,25 +123,11 @@ public class Ventana_Juego extends javax.swing.JFrame {
             label_temporizador.setVisible(false);
             bontonSiguiente.setVisible(true);
             contador=0;
-            ArrayList<JButton> botones = new ArrayList<JButton>();
-            botones.add(jButton1);
-            botones.add(jButton2);
-            botones.add(jButton3);
-            botones.add(jButton4);
             
-            for (int i = 0; i < botones.size(); i++) {
-                String textoBoton = botones.get(i).getText().replaceAll("<[^>]*>", "").trim();
-
-                if (!textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
-                    botones.get(i).setBackground(Color.gray);
-                }
-                
-            }
         }
         
         
     }
-    
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -377,24 +329,12 @@ public class Ventana_Juego extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String textoBoton = jButton1.getText().replaceAll("<[^>]*>", "").trim();
-        if (textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
-            validarRespuesta(1);
-        }else{
-            validarRespuesta(0);
-        }
-        usoPaneles(4);
+        
         
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        String textoBoton = jButton2.getText().replaceAll("<[^>]*>", "").trim();
-        if (textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
-            validarRespuesta(1);
-        }else{
-            validarRespuesta(0);
-        }
-        usoPaneles(4);
+        
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void bontonSiguienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bontonSiguienteActionPerformed
@@ -407,23 +347,11 @@ public class Ventana_Juego extends javax.swing.JFrame {
     }//GEN-LAST:event_bontonSiguienteActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        String textoBoton = jButton3.getText().replaceAll("<[^>]*>", "").trim();
-        if (textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
-            validarRespuesta(1);
-        }else{
-            validarRespuesta(0);
-        }
-        usoPaneles(4);
+        
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        String textoBoton = jButton4.getText().replaceAll("<[^>]*>", "").trim();
-        if (textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
-            validarRespuesta(1);
-        }else{
-            validarRespuesta(0);
-        }
-        usoPaneles(4);
+        
     }//GEN-LAST:event_jButton4ActionPerformed
 
   
