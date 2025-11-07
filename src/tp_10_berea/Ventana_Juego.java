@@ -1,6 +1,7 @@
 package tp_10_berea;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import javax.swing.*;
@@ -23,6 +24,9 @@ public class Ventana_Juego extends javax.swing.JFrame {
     private Color colorAmarillo;
     private Color colorVerde;
     
+    int tiempo = 30;
+    private Timer timer;
+    
     public Ventana_Juego(String _usuario) {
         initComponents();
         usuario = _usuario;
@@ -40,24 +44,82 @@ public class Ventana_Juego extends javax.swing.JFrame {
             
         label_jugador.setText("JUGADOR: "+ datosPartida.get("usuario"));
         label_puntos.setText("PUNTOS: "+ datosPartida.get("puntaje"));
-  
-            
+        
+        label_contenedor_check.setVisible(false);
+        label_contenedor_resultado.setVisible(false);
+        
         juego = new Juego();
         realizarPregunta(juego,_usuario);
     }
     
+    public void compararRespuesta(JButton boton){
+        if(timer != null) { 
+            timer.stop();
+        }
+        respuestaSeleccionada = boton.getText().replaceAll("<[^>]*>", "").trim();
+        
+        
+        if(respuestaSeleccionada.equalsIgnoreCase(respuestaCorrecta.trim())){
+            validarRespuesta(1);
+            usoPaneles(4);
+            usoPaneles(6);
+        }else{
+            validarRespuesta(0);
+            usoPaneles(4);
+            usoPaneles(5);
+        }
+        
+        
+    }
     
-    public void temporizador(){
-        Timer timer = new Timer(1000, e -> {
-            contador++;
-            label_temporizador.setText(""+contador);
-            if (contador == 5) {
-                ((Timer)e.getSource()).stop();
+    public void validarRespuesta(int suceso){
+        //SUCESO EN 0 SIGNIFICA QUE EL JUGADOR SE QUEDO SIN TIEMPO Y NO CONTESTO O RESPONDIÓ MAL
+        if(suceso==0){
+            int aux = Integer.parseInt(datosPartida.get("puntaje"));
+            aux--;
+            String p = ""+aux;
+            datosPartida.put("puntaje", p);
+            
+            int aux2 = Integer.parseInt(datosPartida.get("incorrectas"));
+            aux2++;
+            String p2 = ""+aux2;
+            datosPartida.put("incorrectas", p2);
+        }
+        //SUCESO EN 1 SIGNIFICA QUE EL JUGADOR RESPONDIO BIEN
+        else if(suceso==1){
+            int aux = Integer.parseInt(datosPartida.get("puntaje"));
+            aux++;
+            String p = ""+aux;
+            datosPartida.put("puntaje", p);
+            
+            int aux2 = Integer.parseInt(datosPartida.get("correctas"));
+            aux2++;
+            String p2 = ""+aux2;
+            datosPartida.put("correctas", p2);
+        
+        }
+        
+        label_puntos.setText("PUNTOS: "+ datosPartida.get("puntaje"));
+    }
+    
+    public void temporizador() {
+        if (timer != null) {
+            timer.stop();
+        }
+        contador = 0; 
+        timer = new Timer(1000, e -> {
+            if (contador >= tiempo) {
+                timer.stop();
                 usoPaneles(4);
-                       
+                usoPaneles(5);
+                if (respuestaSeleccionada.equals("")) {
+                    validarRespuesta(0);
+                }
+            } else {
+                contador++;
+                label_temporizador.setText(String.valueOf(contador));
             }
         });
-
         timer.start();
     }
     
@@ -70,7 +132,7 @@ public class Ventana_Juego extends javax.swing.JFrame {
 
             @Override
             protected Void doInBackground() throws Exception {
-                juego.hacerPregunta(label_pregunta,jButton1,jButton2,jButton3,jButton4);
+                respuestaCorrecta = juego.hacerPregunta(label_pregunta,jButton1,jButton2,jButton3,jButton4);
                 contadorPreguntas++;
                 return null;
             }
@@ -111,10 +173,22 @@ public class Ventana_Juego extends javax.swing.JFrame {
             label_fondo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/aula.png")));
             panel_partida.setVisible(true);
             bontonSiguiente.setVisible(false);
+            
             label_contenedor_temporizador.setVisible(true);
             label_temporizador.setVisible(true);
             label_temporizador.setText("0");
+            
             label_contador_preguntas.setText("PREGUNTA: "+contadorPreguntas+"/20");
+            panel_contenedor_pregunta.setVisible(true);
+            
+            label_contenedor_check.setVisible(false);
+            label_contenedor_resultado.setVisible(false);
+            
+            label_jugador.setVisible(true);
+            label_puntos.setVisible(true);
+            label_contador_preguntas.setVisible(true);
+            
+            
         }      
         //MOSTRAR PANEL RESPUESTA 
         else if(seleccion == 4){
@@ -122,8 +196,42 @@ public class Ventana_Juego extends javax.swing.JFrame {
             label_contenedor_temporizador.setVisible(false);
             label_temporizador.setVisible(false);
             bontonSiguiente.setVisible(true);
+            
+            label_jugador.setVisible(false);
+            label_puntos.setVisible(false);
+            label_contador_preguntas.setVisible(false);
+            
             contador=0;
             
+            ArrayList<JButton> botones = new ArrayList<>();
+            botones.add(jButton1);
+            botones.add(jButton2);
+            botones.add(jButton3);
+            botones.add(jButton4);
+
+            for (int i = 0; i < botones.size(); i++) {
+                String textoBoton = botones.get(i).getText().replaceAll("<[^>]*>", "").trim();
+
+                if (!textoBoton.equalsIgnoreCase(respuestaCorrecta.trim())) {
+                    botones.get(i).setBackground(Color.gray);
+                }
+            }
+        }
+        //RESPUESTA MAL
+        else if(seleccion == 5){
+            panel_contenedor_pregunta.setVisible(false);
+            label_contenedor_check.setVisible(true);
+            label_contenedor_check.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/redCheck.png")));
+            label_contenedor_resultado.setVisible(true);
+            label_contenedor_resultado.setText("<html><p style='text-align:center;'>INCORRECTO<br>(-1)</p></html>");
+        }
+        //RESPUESTA BIEN
+        else if(seleccion == 6){
+            panel_contenedor_pregunta.setVisible(false);
+            label_contenedor_check.setVisible(true);
+            label_contenedor_check.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/checkVerde.png")));
+            label_contenedor_resultado.setVisible(true);
+            label_contenedor_resultado.setText("<html><p style='text-align:center;'>CORRECTO<br>(+1)</p></html>");
         }
         
         
@@ -147,6 +255,8 @@ public class Ventana_Juego extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         bontonSiguiente = new javax.swing.JButton();
+        label_contenedor_check = new javax.swing.JLabel();
+        label_contenedor_resultado = new javax.swing.JLabel();
         panel_contenedor_pregunta = new javax.swing.JPanel();
         label_pregunta = new javax.swing.JLabel();
         label_fondo = new javax.swing.JLabel();
@@ -276,28 +386,23 @@ public class Ventana_Juego extends javax.swing.JFrame {
         });
         panel_partida.add(bontonSiguiente, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 20, 110, 30));
 
+        label_contenedor_check.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_contenedor_check.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/checkVerde.png"))); // NOI18N
+        panel_partida.add(label_contenedor_check, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 30, -1, 270));
+
+        label_contenedor_resultado.setFont(new java.awt.Font("Roboto Black", 1, 24)); // NOI18N
+        label_contenedor_resultado.setForeground(new java.awt.Color(255, 255, 255));
+        label_contenedor_resultado.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        label_contenedor_resultado.setText("CORRECTO");
+        panel_partida.add(label_contenedor_resultado, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 30, 200, 270));
+
         panel_contenedor_pregunta.setBackground(new java.awt.Color(255, 255, 255));
+        panel_contenedor_pregunta.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         label_pregunta.setFont(new java.awt.Font("Roboto", 1, 14)); // NOI18N
         label_pregunta.setForeground(new java.awt.Color(102, 102, 102));
         label_pregunta.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-
-        javax.swing.GroupLayout panel_contenedor_preguntaLayout = new javax.swing.GroupLayout(panel_contenedor_pregunta);
-        panel_contenedor_pregunta.setLayout(panel_contenedor_preguntaLayout);
-        panel_contenedor_preguntaLayout.setHorizontalGroup(
-            panel_contenedor_preguntaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panel_contenedor_preguntaLayout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addComponent(label_pregunta, javax.swing.GroupLayout.PREFERRED_SIZE, 691, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(14, Short.MAX_VALUE))
-        );
-        panel_contenedor_preguntaLayout.setVerticalGroup(
-            panel_contenedor_preguntaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_contenedor_preguntaLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(label_pregunta, javax.swing.GroupLayout.DEFAULT_SIZE, 58, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+        panel_contenedor_pregunta.add(label_pregunta, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 700, 50));
 
         panel_partida.add(panel_contenedor_pregunta, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 130, 720, 70));
 
@@ -329,29 +434,45 @@ public class Ventana_Juego extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        
+        if(contador < tiempo){
+            compararRespuesta(jButton1);
+        }
         
     }//GEN-LAST:event_jButton1ActionPerformed
-
+    
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        
+        if(contador < tiempo){
+            compararRespuesta(jButton2);
+        }
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void bontonSiguienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bontonSiguienteActionPerformed
+        if (timer != null){ 
+            timer.stop();       
+        } 
+        contador = 0; 
         if(contadorPreguntas < 20){
-            contador = 0;
-            realizarPregunta(juego,usuario);
+            realizarPregunta(juego, usuario);
             System.out.println("realizando pregunta: " + contadorPreguntas);
+        }else{
+            Ventana_Terminado ventana_juego = new Ventana_Terminado(datosPartida);
+            this.setVisible(false);
+            ventana_juego.setLocationRelativeTo(null);
+            ventana_juego.setVisible(true);
         }
         
     }//GEN-LAST:event_bontonSiguienteActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        
+        if(contador < tiempo){
+            compararRespuesta(jButton3);
+        }
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        
+        if(contador < tiempo){
+            compararRespuesta(jButton4);
+        }
     }//GEN-LAST:event_jButton4ActionPerformed
 
   
@@ -396,6 +517,8 @@ public class Ventana_Juego extends javax.swing.JFrame {
     private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JLabel label_cargando;
     private javax.swing.JLabel label_contador_preguntas;
+    private javax.swing.JLabel label_contenedor_check;
+    private javax.swing.JLabel label_contenedor_resultado;
     private javax.swing.JLabel label_contenedor_temporizador;
     private javax.swing.JLabel label_fondo;
     private javax.swing.JLabel label_jugador;

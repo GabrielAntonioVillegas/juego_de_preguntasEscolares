@@ -3,21 +3,31 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package tp_10_berea;
+
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Random;
+import java.util.TreeMap;
 import javax.swing.*;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
+
+import java.security.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Juego {
     public ArrayList<String[]> matrizDatos = new ArrayList<>();
     
     
-    public void hacerPregunta(JLabel label_pregunta, JButton boton1,JButton boton2,JButton boton3,JButton boton4){
+    public String hacerPregunta(JLabel label_pregunta, JButton boton1,JButton boton2,JButton boton3,JButton boton4){
         if(matrizDatos.isEmpty()){
             llamarPreguntas();
         }
@@ -46,6 +56,8 @@ public class Juego {
         botones.get(1).setText(boton2_formato); 
         botones.get(2).setText(boton3_formato); 
         botones.get(3).setText(boton4_formato); 
+        
+        return datos[4];
     }
     
     public String[] elegirPregunta(){
@@ -86,4 +98,59 @@ public class Juego {
         }
         
     }
+    
+    public void mostrarResultados(JTable tabla, TreeMap mapa){
+        Conexion conex = new Conexion();
+        DefaultTableModel modelo = new DefaultTableModel();
+        String sql = "";
+        
+        modelo.addColumn("Jugador/a");
+        modelo.addColumn("Puntaje");
+        modelo.addColumn("Correctas");
+        modelo.addColumn("Incorrectas");
+        modelo.addColumn("Fecha");
+        
+        sql="INSERT INTO Partida(puntaje,correctas,incorrectas,nombre_usuario) VALUES (?,?,?,?);";
+        
+        try{
+            CallableStatement cs = conex.establecerConexion().prepareCall(sql);
+            cs.setInt(1, Integer.parseInt(""+mapa.get("puntaje")));
+            cs.setInt(2, Integer.parseInt(""+mapa.get("correctas")));
+            cs.setInt(3, Integer.parseInt(""+mapa.get("incorrectas")));
+            cs.setString(4, ""+mapa.get("usuario"));
+            cs.execute();
+        }catch(Exception e){
+            System.out.println("error " + e);
+        }
+        
+        String sql2 = "SELECT * FROM Partida ORDER BY puntaje DESC;";
+        try{
+            Statement st = conex.establecerConexion().createStatement();
+            ResultSet rs = st.executeQuery(sql2);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            while(rs.next()){
+
+                String nombre = rs.getString("nombre_usuario");
+                String puntaje = rs.getString("puntaje");
+                String correctas = rs.getString("correctas");
+                String incorrectas = rs.getString("incorrectas");
+
+                java.sql.Timestamp ts = rs.getTimestamp("fecha");
+                LocalDateTime fechaLocalTime = ts.toLocalDateTime();
+                LocalDate fechaLocal = fechaLocalTime.toLocalDate();
+                String fecha = fechaLocal.format(formatter);
+
+                modelo.addRow(new Object[]{nombre,puntaje,correctas,incorrectas,fecha});
+            }
+        SwingUtilities.invokeLater(() -> tabla.setModel(modelo));
+        }catch(Exception e){
+            System.out.println("error " + e);
+        }finally{
+            conex.cerrarConexion();
+        }
+        
+    }
+    
 }
