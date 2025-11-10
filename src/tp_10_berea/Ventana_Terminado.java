@@ -7,10 +7,6 @@ package tp_10_berea;
 import java.util.TreeMap;
 import javax.swing.SwingWorker;
 
-/**
- *
- * @author gabiv
- */
 public class Ventana_Terminado extends javax.swing.JFrame {
 
     private TreeMap mapa;
@@ -40,13 +36,10 @@ public class Ventana_Terminado extends javax.swing.JFrame {
                 panelCarga.setVisible(false);
                 jProgressBar2.setVisible(false);
                 label_cargando.setVisible(false);
-                jProgressBar2.setIndeterminate(false); 
-                
+                jProgressBar2.setIndeterminate(false);             
             }
         };
-
-        worker.execute();   
-        
+        worker.execute();         
     }
 
     

@@ -51,78 +51,6 @@ public class Ventana_Juego extends javax.swing.JFrame {
         juego = new Juego();
         realizarPregunta(juego,_usuario);
     }
-    
-    public void compararRespuesta(JButton boton){
-        if(timer != null) { 
-            timer.stop();
-        }
-        respuestaSeleccionada = boton.getText().replaceAll("<[^>]*>", "").trim();
-        
-        
-        if(respuestaSeleccionada.equalsIgnoreCase(respuestaCorrecta.trim())){
-            validarRespuesta(1);
-            usoPaneles(4);
-            usoPaneles(6);
-        }else{
-            validarRespuesta(0);
-            usoPaneles(4);
-            usoPaneles(5);
-        }
-        
-        
-    }
-    
-    public void validarRespuesta(int suceso){
-        //SUCESO EN 0 SIGNIFICA QUE EL JUGADOR SE QUEDO SIN TIEMPO Y NO CONTESTO O RESPONDIÓ MAL
-        if(suceso==0){
-            int aux = Integer.parseInt(datosPartida.get("puntaje"));
-            aux--;
-            String p = ""+aux;
-            datosPartida.put("puntaje", p);
-            
-            int aux2 = Integer.parseInt(datosPartida.get("incorrectas"));
-            aux2++;
-            String p2 = ""+aux2;
-            datosPartida.put("incorrectas", p2);
-        }
-        //SUCESO EN 1 SIGNIFICA QUE EL JUGADOR RESPONDIO BIEN
-        else if(suceso==1){
-            int aux = Integer.parseInt(datosPartida.get("puntaje"));
-            aux++;
-            String p = ""+aux;
-            datosPartida.put("puntaje", p);
-            
-            int aux2 = Integer.parseInt(datosPartida.get("correctas"));
-            aux2++;
-            String p2 = ""+aux2;
-            datosPartida.put("correctas", p2);
-        
-        }
-        
-        label_puntos.setText("PUNTOS: "+ datosPartida.get("puntaje"));
-    }
-    
-    public void temporizador() {
-        if (timer != null) {
-            timer.stop();
-        }
-        contador = 0; 
-        timer = new Timer(1000, e -> {
-            if (contador >= tiempo) {
-                timer.stop();
-                usoPaneles(4);
-                usoPaneles(5);
-                if (respuestaSeleccionada.equals("")) {
-                    validarRespuesta(0);
-                }
-            } else {
-                contador++;
-                label_temporizador.setText(String.valueOf(contador));
-            }
-        });
-        timer.start();
-    }
-    
     public void realizarPregunta(Juego juego,String _usuario){
         if(contadorPreguntas == 0){
             usoPaneles(1);
@@ -132,7 +60,8 @@ public class Ventana_Juego extends javax.swing.JFrame {
 
             @Override
             protected Void doInBackground() throws Exception {
-                respuestaCorrecta = juego.hacerPregunta(label_pregunta,jButton1,jButton2,jButton3,jButton4);
+                respuestaCorrecta = juego.hacerPregunta(label_pregunta,jButton1,
+                        jButton2,jButton3,jButton4);
                 contadorPreguntas++;
                 return null;
             }
@@ -188,11 +117,11 @@ public class Ventana_Juego extends javax.swing.JFrame {
             label_puntos.setVisible(true);
             label_contador_preguntas.setVisible(true);
             
-            
         }      
         //MOSTRAR PANEL RESPUESTA 
         else if(seleccion == 4){
-            label_fondo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/aula_violeta.png")));
+            label_fondo.setIcon(new javax.swing.ImageIcon(getClass().
+                    getResource("/img/aula_violeta.png")));
             label_contenedor_temporizador.setVisible(false);
             label_temporizador.setVisible(false);
             bontonSiguiente.setVisible(true);
@@ -233,9 +162,74 @@ public class Ventana_Juego extends javax.swing.JFrame {
             label_contenedor_resultado.setVisible(true);
             label_contenedor_resultado.setText("<html><p style='text-align:center;'>CORRECTO<br>(+1)</p></html>");
         }
-        
-        
     }
+    public void compararRespuesta(JButton boton){
+        if(timer != null) { 
+            timer.stop();
+        }
+        respuestaSeleccionada = boton.getText().replaceAll("<[^>]*>", "").trim();  
+        if(respuestaSeleccionada.equalsIgnoreCase(respuestaCorrecta.trim())){
+            validarRespuesta(1);
+            usoPaneles(4);
+            usoPaneles(6);
+        }else{
+            validarRespuesta(0);
+            usoPaneles(4);
+            usoPaneles(5);
+        }
+    }  
+    public void validarRespuesta(int suceso){
+        //SUCESO EN 0 SIGNIFICA QUE EL JUGADOR SE QUEDO SIN TIEMPO Y NO CONTESTO O RESPONDIÓ MAL
+        if(suceso==0){
+            int aux = Integer.parseInt(datosPartida.get("puntaje"));
+            aux--;
+            String p = ""+aux;
+            datosPartida.put("puntaje", p);
+            
+            int aux2 = Integer.parseInt(datosPartida.get("incorrectas"));
+            aux2++;
+            String p2 = ""+aux2;
+            datosPartida.put("incorrectas", p2);
+        }
+        //SUCESO EN 1 SIGNIFICA QUE EL JUGADOR RESPONDIO BIEN
+        else if(suceso==1){
+            int aux = Integer.parseInt(datosPartida.get("puntaje"));
+            aux++;
+            String p = ""+aux;
+            datosPartida.put("puntaje", p);
+            
+            int aux2 = Integer.parseInt(datosPartida.get("correctas"));
+            aux2++;
+            String p2 = ""+aux2;
+            datosPartida.put("correctas", p2);
+        
+        }
+        
+        label_puntos.setText("PUNTOS: "+ datosPartida.get("puntaje"));
+    }
+    
+    public void temporizador() {
+        if (timer != null) {
+            timer.stop();
+        }
+        contador = 0; 
+        timer = new Timer(1000, e -> {
+            if (contador >= tiempo) {
+                timer.stop();
+                usoPaneles(4);
+                usoPaneles(5);
+                if (respuestaSeleccionada.equals("")) {
+                    validarRespuesta(0);
+                }
+            } else {
+                contador++;
+                label_temporizador.setText(String.valueOf(contador));
+            }
+        });
+        timer.start();
+    }
+    
+    
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -402,9 +396,9 @@ public class Ventana_Juego extends javax.swing.JFrame {
         label_pregunta.setFont(new java.awt.Font("Roboto", 1, 14)); // NOI18N
         label_pregunta.setForeground(new java.awt.Color(102, 102, 102));
         label_pregunta.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        panel_contenedor_pregunta.add(label_pregunta, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 700, 50));
+        panel_contenedor_pregunta.add(label_pregunta, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 0, 700, 90));
 
-        panel_partida.add(panel_contenedor_pregunta, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 130, 720, 70));
+        panel_partida.add(panel_contenedor_pregunta, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 120, 720, 90));
 
         label_fondo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/aula.png"))); // NOI18N
         panel_partida.add(label_fondo, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 800, 500));
@@ -447,10 +441,7 @@ public class Ventana_Juego extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void bontonSiguienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bontonSiguienteActionPerformed
-        if (timer != null){ 
-            timer.stop();       
-        } 
-        contador = 0; 
+
         if(contadorPreguntas < 20){
             realizarPregunta(juego, usuario);
             System.out.println("realizando pregunta: " + contadorPreguntas);
